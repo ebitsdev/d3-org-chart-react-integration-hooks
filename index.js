@@ -73,7 +73,6 @@ const App = props => {
 
   function onNodeClick(nodeId) {
     console.log("d3", d3.event);
-    alert("clicked " + nodeId);
   }
 
   useEffect(() => {
@@ -86,8 +85,6 @@ const App = props => {
   }, [true]);
   return (
     <div>
-      Click node to trigger action in parent or &nbsp;
-      <button onClick={() => addNode()}>add node as root's child</button>
       <OrgChartComponent
         setClick={click => (addNodeChildFunc = click)}
         onNodeClick={onNodeClick}

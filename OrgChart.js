@@ -1,8 +1,9 @@
-import React, { useLayoutEffect, useRef, useEffect } from "react";
+import React, { useLayoutEffect, useRef, useEffect, useState } from "react";
 import TreeChart from "./Tree";
 
 export const OrgChartComponent = (props, ref) => {
   const d3Container = useRef(null);
+  const [chartObj, setChartObj] = useState({});
   let chart = null;
 
   function addNode(node) {
@@ -11,11 +12,21 @@ export const OrgChartComponent = (props, ref) => {
 
   props.setClick(addNode);
 
+  const openSearch = () => {
+    chartObj.searchUsers();
+  };
+
+  const closeSearch = () => {
+    console.log("close");
+    chartObj.closeSearchBox();
+  };
+
   // We need to manipulate DOM
   useLayoutEffect(() => {
     if (props.data && d3Container.current) {
       if (!chart) {
         chart = new TreeChart();
+        setChartObj(chart);
       }
 
       chart
@@ -34,7 +45,28 @@ export const OrgChartComponent = (props, ref) => {
 
   return (
     <div>
+      <button onClick={openSearch}>search</button>
       <div ref={d3Container} />
+      <div className="user-search-box">
+        <div className="input-box">
+          <div className="close-button-wrapper">
+            <button onClick={closeSearch}> close</button>
+          </div>
+          <div className="input-wrapper">
+            <input type="text" className="search-input" placeholder="Search" />
+            <div className="input-bottom-placeholder">
+              By Firstname, Lastname, Tags
+            </div>
+          </div>
+          <div />
+        </div>
+        <div className="result-box">
+          <div className="result-header"> RESULTS </div>
+          <div className="result-list">
+            <div className="buffer" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

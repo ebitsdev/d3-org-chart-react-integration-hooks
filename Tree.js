@@ -25,6 +25,12 @@ class TreeChart {
       onNodeClick: d => d
     };
 
+    this.tooltip = d3
+      .select("body")
+      .append("div")
+      .attr("class", "customTooltip-wrapper");
+
+    this.listen();
     this.getChartState = () => attrs;
 
     // Dynamically set getter and setter functions for Chart class
@@ -372,15 +378,15 @@ class TreeChart {
     });
   }
 
-  // This function can be invoked via chart.addNode API, and it adds node in tree at runtime
-  addNode(obj) {
-    const attrs = this.getChartState();
-    attrs.data.push(obj);
+  // // This function can be invoked via chart.addNode API, and it adds node in tree at runtime
+  // addNode(obj) {
+  //   const attrs = this.getChartState();
+  //   attrs.data.push(obj);
 
-    // Update state of nodes and redraw graph
-    this.updateNodesState();
-    return this;
-  }
+  //   // Update state of nodes and redraw graph
+  //   this.updateNodesState();
+  //   return this;
+  // }
 
   // This function can be invoked via chart.removeNode API, and it removes node from tree at runtime
   removeNode(nodeId) {
@@ -399,6 +405,121 @@ class TreeChart {
       // Update state of nodes and redraw graph
       updateNodesState();
     }
+  }
+
+  plotToolTip() {
+    console.log(">>>>", this.tooltip);
+    var strVar = "";
+    strVar += '  <div class="customTooltip">';
+    strVar += "    <div>";
+    strVar += '      <p class="position"> Hefelfinger Family </p>';
+    strVar += '      <p class="area">150,000,000 USD</p>';
+    strVar += "  </div>";
+    strVar += "";
+
+    this.tooltip.html(strVar);
+
+    this.tooltip
+      .transition()
+      .duration(200)
+      .style("opacity", "1")
+      .style("display", "block");
+    d3.select("body")
+      .attr("cursor", "pointer")
+      .attr("stroke-width", 50);
+
+    var y = d3.event.pageY;
+    var x = d3.event.pageX;
+
+    //restrict tooltip to fit in borders
+    if (y < 220) {
+      y += 220 - y;
+      x += 130;
+    }
+
+    if (y > this.svgHeight() - 300) {
+      y -= 300 - (this.svgHeight() - y);
+    }
+
+    this.tooltip.style("top", y - 180 + "px").style("left", x - 405 + "px");
+  }
+
+  searchUsers() {
+    d3.selectAll(".user-search-box")
+      .transition()
+      .duration(250)
+      .style("width", "350px");
+  }
+
+  closeSearchBox() {
+    d3.selectAll(".user-search-box")
+      .transition()
+      .duration(250)
+      .style("width", "0px");
+  }
+
+  get(selector) {
+    return document.querySelector(selector);
+  }
+
+  listen() {
+    var input = this.get(".user-search-box .search-input");
+    var reflectResult = this.reflectResults;
+    var _that = this;
+
+    input.addEventListener("input", function() {
+      var value = input.value ? input.value.trim() : "";
+      if (value.length < 3) {
+        _that.clearResult();
+      } else {
+        if ("Leverling Janet".includes(value)) reflectResult(_that);
+      }
+    });
+  }
+
+  clearResult() {
+    this.set(".result-list", '<div class="buffer" ></div>');
+    this.set(".user-search-box .result-header", "RESULT");
+  }
+
+  reflectResults(_that) {
+    var htmlStringArray = [1, 2, 3, 4, 5].map(function() {
+      var strVar = "";
+      strVar += '         <div class="list-item">';
+      strVar += '            <div class="description">';
+      strVar += '              <p class="name">' + "Leverling Janet" + "</p>";
+      strVar +=
+        '               <p class="position-name">' + "150,000,000 USD" + "</p>";
+      strVar += "            </div>";
+      strVar += "        </div>";
+
+      return strVar;
+    });
+
+    var htmlString = htmlStringArray.join("");
+    console.log(_that, _that.clearResult);
+    _that.clearResult();
+
+    var parentElement = _that.get(".result-list");
+    var old = parentElement.innerHTML;
+    var newElement = htmlString + old;
+    parentElement.innerHTML = newElement;
+    _that.set(
+      ".user-search-box .result-header",
+      "RESULT - " + htmlStringArray.length
+    );
+  }
+
+  set(selector, value) {
+    var elements = this.getAll(selector);
+    elements.forEach(function(element) {
+      element.innerHTML = value;
+      element.value = value;
+    });
+  }
+
+  getAll(selector) {
+    return document.querySelectorAll(selector);
   }
 
   // This function basically redraws visible graph, based on nodes state
@@ -611,7 +732,8 @@ class TreeChart {
         if ([...d3.event.srcElement.classList].includes("node-button-circle")) {
           return;
         }
-        console.log(data);
+        console.log(data, d3.event.pageY);
+        this.plotToolTip();
         attrs.onNodeClick(data.nodeId);
       });
 
@@ -923,15 +1045,15 @@ class TreeChart {
       .style("width", ({ width }) => `${width}px`)
       .style("height", ({ height }) => `${height}px`)
       .style("color", "white")
-      .html(
-        ({ data }) => `<div style="
+      .html(({ data }) => {
+        return `<div style="
     font-size: 30px;
     margin-left: 20px;
     margin-top: 20px;
 "> Leverling Janet </div><div style="
     font-size: 20px;
-    margin-left: 20px;">1,20,000 USD</div>`
-      );
+    margin-left: 20px;">1,20,000 USD</div>`;
+      });
   }
 
   // Toggle children on click.
@@ -952,7 +1074,6 @@ class TreeChart {
       // Set each children as expanded
       d.children.forEach(({ data }) => (data.expanded = true));
     }
-    console.log(">>>> ", d.id);
     // Redraw Graph
     this.update(d);
   }
