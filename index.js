@@ -3,10 +3,11 @@ import { render } from "react-dom";
 import "./style.css";
 import { OrgChartComponent } from "./OrgChart";
 import * as d3 from "d3";
+import dummyData from "./dummyData";
 
 const App = props => {
   const [data, setData] = useState(null);
-  let addNodeChildFunc = null; 
+  let addNodeChildFunc = null;
 
   function addNode() {
     const node = {
@@ -79,8 +80,8 @@ const App = props => {
     d3.json(
       "https://gist.githubusercontent.com/bumbeishvili/dc0d47bc95ef359fdc75b63cd65edaf2/raw/c33a3a1ef4ba927e3e92b81600c8c6ada345c64b/orgChart.json"
     ).then(data => {
-      console.log(data.slice(0, 5));
-      setData(data);
+      console.log(data.slice(0, 20));
+      setData(dummyData);
     });
   }, [true]);
   return (

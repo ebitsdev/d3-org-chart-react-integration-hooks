@@ -115,7 +115,7 @@ class TreeChart {
     );
   }
 
-  render() {
+  render(customData) {
     //InnerFunctions which will update visuals
 
     const attrs = this.getChartState();
@@ -129,6 +129,7 @@ class TreeChart {
     //Attach drop shadow id to attrs object
     this.setDropShadowId(attrs);
 
+    console.log("react chckpoint 1");
     //Calculated properties
     const calc = {
       id: null,
@@ -145,6 +146,7 @@ class TreeChart {
       attrs.svgHeight - attrs.marginBottom - calc.chartTopMargin;
     attrs.calc = calc;
 
+    console.log("react chckpoint 2");
     // Get maximum node width and height
     calc.nodeMaxWidth = d3.max(attrs.data, ({ width }) => width);
     calc.nodeMaxHeight = d3.max(attrs.data, ({ height }) => height);
@@ -159,6 +161,7 @@ class TreeChart {
     };
     attrs.layouts = layouts;
 
+    console.log("react chckpoint 3");
     // Generate tree layout function
     layouts.treemap = d3
       .tree()
@@ -170,16 +173,19 @@ class TreeChart {
       zoom: null
     };
 
+    console.log("react chckpoint 4");
     // Get zooming function
     behaviors.zoom = d3.zoom().on("zoom", d => this.zoomed(d));
 
-    //****************** ROOT node work ************************
-
+    //****************** ROOT node work **********************
     // Convert flat data to hierarchical
+    console.log("new data >>> ", this.data());
     attrs.root = d3
       .stratify()
       .id(({ nodeId }) => nodeId)
-      .parentId(({ parentNodeId }) => parentNodeId)(attrs.data);
+      .parentId(({ parentNodeId }) => parentNodeId)(
+      customData ? customData : this.data()
+    );
 
     // Set child nodes enter appearance positions
     attrs.root.x0 = 0;
@@ -188,6 +194,7 @@ class TreeChart {
     /** Get all nodes as array (with extended parent & children properties set)
             This way we can access any node's parent directly using node.parent - pretty cool, huh?
         */
+    console.log(attrs.root);
     attrs.allNodes = attrs.layouts.treemap(attrs.root).descendants();
 
     // Assign direct children and total subordinate children's cound
@@ -219,8 +226,7 @@ class TreeChart {
       .attr("height", attrs.svgHeight)
       .attr("font-family", attrs.defaultFont)
       .call(behaviors.zoom)
-      .attr("cursor", "move")
-      .style("background-color", attrs.backgroundColor);
+      .attr("cursor", "move");
     attrs.svg = svg;
 
     //Add container g element
@@ -407,17 +413,90 @@ class TreeChart {
     }
   }
 
-  plotToolTip() {
-    console.log(">>>>", this.tooltip);
+  goBack() {
+    if (this.oldData) {
+      this.data(this.oldData);
+      this.render();
+      this.oldData = null;
+    }
+  }
+
+  focusOnNode(data) {
+    const attrs = this.getChartState();
+    let whitelist = [];
+    let oldData = JSON.parse(JSON.stringify(this.data()));
+    let d = this.data();
+    let index = 0,
+      i,
+      focusId;
+
+    this.oldData = oldData;
+
+    for (i = 0; i < d.length; i++) {
+      if (d[i].tag == data.tag) {
+        d[i].parentNodeId = null;
+        focusId = d[i].nodeId;
+        whitelist = [d[i].nodeId];
+        index = i;
+        break;
+      }
+    }
+
+    function recursiveChildSearch(id, data = {}) {
+      if (Array.isArray(data.children) && data.children.length) {
+        let found = null;
+
+        for (let i = 0; i < data.children.length; i++) {
+          console.log(data.children[i].id, id);
+          if (data.children[i].id == id) {
+            found = data.children[i];
+            break;
+          } else {
+            found = recursiveChild(id, data.children[i]);
+          }
+        }
+
+        if (found) {
+          return found;
+        }
+      }
+    }
+
+    const selectedNodeData = recursiveChildSearch(focusId, attrs.root);
+
+    function recursiveChild(children = []) {
+      if (children && Array.isArray(children))
+        children.forEach(d => {
+          whitelist = whitelist.concat(d.id);
+          if (d.children && Array.isArray(d.children) && d.children.length) {
+            recursiveChild(d.children);
+          }
+        });
+    }
+
+    recursiveChild(selectedNodeData.children);
+    d = d.filter(metaData => whitelist.includes(metaData.nodeId));
+    this.data(d);
+    this.render();
+    console.log("attr", d, this.oldData);
+  }
+
+  plotToolTip(data) {
+    console.log(">>>>", data);
     var strVar = "";
     strVar += '  <div class="customTooltip">';
     strVar += "    <div>";
     strVar += '      <p class="position"> Hefelfinger Family </p>';
     strVar += '      <p class="area">150,000,000 USD</p>';
+    if (data.tag) strVar += `<button id="tagclick">${data.tag}</button>`;
     strVar += "  </div>";
     strVar += "";
 
     this.tooltip.html(strVar);
+    document.getElementById("tagclick").addEventListener("click", () => {
+      console.log(data);
+      this.focusOnNode(data);
+    });
 
     this.tooltip
       .transition()
@@ -442,6 +521,15 @@ class TreeChart {
     }
 
     this.tooltip.style("top", y - 180 + "px").style("left", x - 405 + "px");
+  }
+
+  tooltipOutHandler() {
+    tooltip
+      .transition()
+      .duration(200)
+      .style("opacity", "0")
+      .style("display", "none");
+    d3.select(this).attr("stroke-width", 5);
   }
 
   searchUsers() {
@@ -733,7 +821,7 @@ class TreeChart {
           return;
         }
         console.log(data, d3.event.pageY);
-        this.plotToolTip();
+        this.plotToolTip(data);
         attrs.onNodeClick(data.nodeId);
       });
 
@@ -1050,7 +1138,7 @@ class TreeChart {
     font-size: 30px;
     margin-left: 20px;
     margin-top: 20px;
-"> Leverling Janet </div><div style="
+"> ${data.name}</div><div style="
     font-size: 20px;
     margin-left: 20px;">1,20,000 USD</div>`;
       });

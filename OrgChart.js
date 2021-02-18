@@ -21,6 +21,10 @@ export const OrgChartComponent = (props, ref) => {
     chartObj.closeSearchBox();
   };
 
+  const goBack = () => {
+    chartObj.goBack();
+  };
+
   // We need to manipulate DOM
   useLayoutEffect(() => {
     if (props.data && d3Container.current) {
@@ -46,6 +50,7 @@ export const OrgChartComponent = (props, ref) => {
   return (
     <div>
       <button onClick={openSearch}>search</button>
+      <button onClick={goBack}>Back</button>
       <div ref={d3Container} />
       <div className="user-search-box">
         <div className="input-box">
