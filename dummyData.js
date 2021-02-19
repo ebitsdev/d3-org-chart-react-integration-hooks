@@ -229,38 +229,6 @@ var a = [
     expanded: false,
     directSubordinates: 9,
     totalSubordinates: 136
-  },
-  {
-    name: "Cash",
-    nodeId: "8",
-    parentNodeId: "5",
-    width: 339,
-    height: 144,
-    borderWidth: 1,
-    borderRadius: 5,
-    borderColor: { red: 15, green: 140, blue: 121, alpha: 1 },
-    backgroundColor: { red: 51, green: 182, blue: 208, alpha: 1 },
-    nodeImage: {
-      url:
-        "https://raw.githubusercontent.com/bumbeishvili/Assets/master/Projects/D3/Organization%20Chart/general.jpg",
-      width: 100,
-      height: 100,
-      centerTopDistance: 0,
-      centerLeftDistance: 0,
-      cornerShape: "ORIGINAL",
-      shadow: false,
-      borderWidth: 0,
-      borderColor: { red: 19, green: 123, blue: 128, alpha: 1 }
-    },
-    nodeIcon: { icon: "https://to.ly/1yZnX", size: 30 },
-    template:
-      '<div>\n                  <div style="margin-left:70px;\n                              margin-top:10px;\n                              font-size:20px;\n                              font-weight:bold;\n                         ">Suyama Michael </div>\n                 <div style="margin-left:70px;\n                              margin-top:3px;\n                              font-size:16px;\n                         ">Senior sales manager </div>\n\n                 <div style="margin-left:70px;\n                              margin-top:3px;\n                              font-size:14px;\n                         ">IT Consulting</div>\n\n                 <div style="margin-left:194.5px;\n                             margin-top:15px;\n                             font-size:13px;\n                             position:absolute;\n                             bottom:5px;\n                            ">\n                      <div>CEO office</div>\n                      <div style="margin-top:5px">Corporate</div>\n                 </div>\n              </div>',
-    connectorLineColor: { red: 220, green: 189, blue: 207, alpha: 1 },
-    connectorLineWidth: 5,
-    dashArray: "",
-    expanded: false,
-    directSubordinates: 0,
-    totalSubordinates: 0
   }
 ];
 

@@ -384,6 +384,47 @@ class TreeChart {
     });
   }
 
+  addNodeElement() {
+    const obj = {
+      name: "Cash",
+      nodeId: "8",
+      parentNodeId: "5",
+      width: 339,
+      height: 144,
+      borderWidth: 1,
+      borderRadius: 5,
+      borderColor: { red: 15, green: 140, blue: 121, alpha: 1 },
+      backgroundColor: { red: 51, green: 182, blue: 208, alpha: 1 },
+      nodeImage: {
+        url:
+          "https://raw.githubusercontent.com/bumbeishvili/Assets/master/Projects/D3/Organization%20Chart/general.jpg",
+        width: 100,
+        height: 100,
+        centerTopDistance: 0,
+        centerLeftDistance: 0,
+        cornerShape: "ORIGINAL",
+        shadow: false,
+        borderWidth: 0,
+        borderColor: { red: 19, green: 123, blue: 128, alpha: 1 }
+      },
+      nodeIcon: { icon: "https://to.ly/1yZnX", size: 30 },
+      template:
+        '<div>\n                  <div style="margin-left:70px;\n                              margin-top:10px;\n                              font-size:20px;\n                              font-weight:bold;\n                         ">Suyama Michael </div>\n                 <div style="margin-left:70px;\n                              margin-top:3px;\n                              font-size:16px;\n                         ">Senior sales manager </div>\n\n                 <div style="margin-left:70px;\n                              margin-top:3px;\n                              font-size:14px;\n                         ">IT Consulting</div>\n\n                 <div style="margin-left:194.5px;\n                             margin-top:15px;\n                             font-size:13px;\n                             position:absolute;\n                             bottom:5px;\n                            ">\n                      <div>CEO office</div>\n                      <div style="margin-top:5px">Corporate</div>\n                 </div>\n              </div>',
+      connectorLineColor: { red: 220, green: 189, blue: 207, alpha: 1 },
+      connectorLineWidth: 5,
+      dashArray: "",
+      expanded: true,
+      directSubordinates: 0,
+      totalSubordinates: 0
+    };
+    const attrs = this.getChartState();
+    attrs.data.push(obj);
+
+    // Update state of nodes and redraw graph
+    this.updateNodesState();
+    return this;
+  }
+
   // // This function can be invoked via chart.addNode API, and it adds node in tree at runtime
   // addNode(obj) {
   //   const attrs = this.getChartState();
@@ -493,10 +534,12 @@ class TreeChart {
     strVar += "";
 
     this.tooltip.html(strVar);
-    document.getElementById("tagclick").addEventListener("click", () => {
-      console.log(data);
-      this.focusOnNode(data);
-    });
+
+    if (!this.oldData)
+      document.getElementById("tagclick").addEventListener("click", () => {
+        console.log(data);
+        this.focusOnNode(data);
+      });
 
     this.tooltip
       .transition()
@@ -506,6 +549,15 @@ class TreeChart {
     d3.select("body")
       .attr("cursor", "pointer")
       .attr("stroke-width", 50);
+
+    console.log("tooltip > ", this.tooltip);
+    const _thisRef = this;
+    d3.select("body").on("click", function() {
+      // var outside = this.tooltip.filter(equalToEventTarget).empty();
+      // if (outside) {
+      _thisRef.tooltip.style("opacity", "0").style("display", "none");
+      // }
+    });
 
     var y = d3.event.pageY;
     var x = d3.event.pageX;
@@ -1010,10 +1062,10 @@ class TreeChart {
       .select(".node-button-g")
       .attr("transform", ({ data }) => `translate(0,${data.height / 2})`)
       .attr("opacity", ({ children, _children }) => {
-        if (children || _children) {
-          return 1;
-        }
-        return 0;
+        // if (children || _children) {
+        //   return 1;
+        // }
+        return 1;
       });
 
     // Restyle node button circle
@@ -1073,6 +1125,38 @@ class TreeChart {
       d.x0 = d.x;
       d.y0 = d.y;
     });
+  }
+
+  toggleFullScreen() {
+    const attrs = this.getChartState();
+    if (
+      (document.fullScreenElement && document.fullScreenElement !== null) ||
+      (!document.mozFullScreen && !document.webkitIsFullScreen)
+    ) {
+      if (document.documentElement.requestFullScreen) {
+        document.documentElement.requestFullScreen();
+      } else if (document.documentElement.mozRequestFullScreen) {
+        document.documentElement.mozRequestFullScreen();
+      } else if (document.documentElement.webkitRequestFullScreen) {
+        document.documentElement.webkitRequestFullScreen(
+          Element.ALLOW_KEYBOARD_INPUT
+        );
+      }
+      d3.select("svg-chart-container")
+        .attr("width", screen.width)
+        .attr("height", screen.height);
+    } else {
+      if (document.cancelFullScreen) {
+        document.cancelFullScreen();
+      } else if (document.mozCancelFullScreen) {
+        document.mozCancelFullScreen();
+      } else if (document.webkitCancelFullScreen) {
+        document.webkitCancelFullScreen();
+      }
+      d3.select("svg-chart-container")
+        .attr("width", attrs.svgWidth)
+        .attr("height", attrs.svgHeight);
+    }
   }
 
   // This function detects whether current browser is edge
@@ -1146,6 +1230,8 @@ class TreeChart {
 
   // Toggle children on click.
   onButtonClick(d) {
+    console.log("here here", d);
+    console.log(this.data());
     // If childrens are expanded
     if (d.children) {
       //Collapse them
@@ -1155,12 +1241,14 @@ class TreeChart {
       // Set descendants expanded property to false
       this.setExpansionFlagToChildren(d, false);
     } else {
-      // Expand children
+      if (d.id == "5") this.addNodeElement();
+
+      //expand
       d.children = d._children;
       d._children = null;
 
       // Set each children as expanded
-      d.children.forEach(({ data }) => (data.expanded = true));
+      d.children && d.children.forEach(({ data }) => (data.expanded = true));
     }
     // Redraw Graph
     this.update(d);
