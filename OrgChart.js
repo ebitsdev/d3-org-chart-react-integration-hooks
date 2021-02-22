@@ -55,12 +55,17 @@ export const OrgChartComponent = (props, ref) => {
     chartObj.toggleFullScreen();
   };
 
+  const zoomNode = () => {
+    chartObj.zoomNode();
+  };
+
   return (
     <div>
       <div ref={d3Container}>
-        <button onClick={openSearch}>search</button>
-        <button onClick={goBack}>Back</button>
+        {/*<button onClick={openSearch}>search</button>
+        <button onClick={goBack}>Back</button>*/}
         <button onClick={fullScreen}>Full Screen</button>
+        {/*<button onClick={zoomNode}>Locate</button>*/}
       </div>
       <div className="user-search-box">
         <div className="input-box">

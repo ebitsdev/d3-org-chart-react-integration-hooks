@@ -30,6 +30,8 @@ class TreeChart {
       .append("div")
       .attr("class", "customTooltip-wrapper");
 
+    this.zoomBehaviours = d3.zoom().scaleExtent();
+
     this.listen();
     this.getChartState = () => attrs;
 
@@ -106,6 +108,7 @@ class TreeChart {
     // Store passed zoom level
     attrs.initialZoom = zoomLevel;
 
+    console.log(" >>> ", calc.centerX);
     // Rescale container element accordingly
     attrs.centerG.attr(
       "transform",
@@ -522,6 +525,12 @@ class TreeChart {
     console.log("attr", d, this.oldData);
   }
 
+  zoomNode() {
+    console.log(this.data());
+    const attrs = this.getChartState();
+    this.update(attrs.root, "3");
+  }
+
   plotToolTip(data) {
     console.log(">>>>", data);
     var strVar = "";
@@ -550,7 +559,6 @@ class TreeChart {
       .attr("cursor", "pointer")
       .attr("stroke-width", 50);
 
-    console.log("tooltip > ", this.tooltip);
     const _thisRef = this;
     d3.select("body").on("click", function() {
       // var outside = this.tooltip.filter(equalToEventTarget).empty();
@@ -663,7 +671,7 @@ class TreeChart {
   }
 
   // This function basically redraws visible graph, based on nodes state
-  update({ x0, y0, x, y }) {
+  update({ x0, y0, x, y }, locate = null) {
     const attrs = this.getChartState();
     const calc = attrs.calc;
 
@@ -1125,6 +1133,26 @@ class TreeChart {
       d.x0 = d.x;
       d.y0 = d.y;
     });
+
+    console.log(nodes);
+    if (locate) {
+      let xCord, yCord;
+
+      nodes.forEach(d => {
+        if (d.id == locate) {
+          xCord = d.x;
+          yCord = d.y;
+        }
+      });
+
+      // normalize for width/height
+      var new_x = -xCord + window.innerWidth / 2;
+      var new_y = -yCord + window.innerHeight / 2;
+      let svg = d3.select("svg");
+      // move the main container g
+      svg.attr("transform", "translate(" + new_x + "," + new_y + ")");
+      this.zoomed(new_x, new_y);
+    }
   }
 
   toggleFullScreen() {
@@ -1383,18 +1411,23 @@ class TreeChart {
   }
 
   // Zoom handler function
-  zoomed() {
+  zoomed(x, y) {
     const attrs = this.getChartState();
     const chart = attrs.chart;
 
-    // Get d3 event's transform object
-    const transform = d3.event.transform;
+    if (x && y) {
+      chart.attr("transform", { x, y });
+    } else {
+      // Get d3 event's transform object
+      const transform = d3.event.transform;
 
-    // Store it
-    attrs.lastTransform = transform;
+      // Store it
+      attrs.lastTransform = transform;
 
-    // Reposition and rescale chart accordingly
-    chart.attr("transform", transform);
+      console.log("transform >", transform);
+      // Reposition and rescale chart accordingly
+      chart.attr("transform", transform);
+    }
 
     // Apply new styles to the foreign object element
     if (this.isEdge()) {
