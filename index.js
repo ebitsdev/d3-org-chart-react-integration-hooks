@@ -84,6 +84,7 @@ const App = props => {
       setData(dummyData);
     });
   }, [true]);
+
   return (
     <div>
       <OrgChartComponent

@@ -108,7 +108,6 @@ class TreeChart {
     // Store passed zoom level
     attrs.initialZoom = zoomLevel;
 
-    console.log(" >>> ", calc.centerX);
     // Rescale container element accordingly
     attrs.centerG.attr(
       "transform",
@@ -132,7 +131,6 @@ class TreeChart {
     //Attach drop shadow id to attrs object
     this.setDropShadowId(attrs);
 
-    console.log("react chckpoint 1");
     //Calculated properties
     const calc = {
       id: null,
@@ -149,7 +147,6 @@ class TreeChart {
       attrs.svgHeight - attrs.marginBottom - calc.chartTopMargin;
     attrs.calc = calc;
 
-    console.log("react chckpoint 2");
     // Get maximum node width and height
     calc.nodeMaxWidth = d3.max(attrs.data, ({ width }) => width);
     calc.nodeMaxHeight = d3.max(attrs.data, ({ height }) => height);
@@ -164,7 +161,6 @@ class TreeChart {
     };
     attrs.layouts = layouts;
 
-    console.log("react chckpoint 3");
     // Generate tree layout function
     layouts.treemap = d3
       .tree()
@@ -176,13 +172,11 @@ class TreeChart {
       zoom: null
     };
 
-    console.log("react chckpoint 4");
     // Get zooming function
     behaviors.zoom = d3.zoom().on("zoom", d => this.zoomed(d));
 
     //****************** ROOT node work **********************
     // Convert flat data to hierarchical
-    console.log("new data >>> ", this.data());
     attrs.root = d3
       .stratify()
       .id(({ nodeId }) => nodeId)
@@ -197,7 +191,7 @@ class TreeChart {
     /** Get all nodes as array (with extended parent & children properties set)
             This way we can access any node's parent directly using node.parent - pretty cool, huh?
         */
-    console.log(attrs.root);
+
     attrs.allNodes = attrs.layouts.treemap(attrs.root).descendants();
 
     // Assign direct children and total subordinate children's cound
@@ -387,7 +381,7 @@ class TreeChart {
     });
   }
 
-  addNodeElement() {
+  addNodeElement(d) {
     const obj = {
       name: "Cash",
       nodeId: "8",
@@ -423,8 +417,12 @@ class TreeChart {
     const attrs = this.getChartState();
     attrs.data.push(obj);
 
+    // children fetching flag
+    d.childrenFecthed = true;
+
     // Update state of nodes and redraw graph
     this.updateNodesState();
+    // this.update(d);
     return this;
   }
 
@@ -491,7 +489,6 @@ class TreeChart {
         let found = null;
 
         for (let i = 0; i < data.children.length; i++) {
-          console.log(data.children[i].id, id);
           if (data.children[i].id == id) {
             found = data.children[i];
             break;
@@ -522,17 +519,14 @@ class TreeChart {
     d = d.filter(metaData => whitelist.includes(metaData.nodeId));
     this.data(d);
     this.render();
-    console.log("attr", d, this.oldData);
   }
 
   zoomNode() {
-    console.log(this.data());
     const attrs = this.getChartState();
     this.update(attrs.root, "3");
   }
 
   plotToolTip(data) {
-    console.log(">>>>", data);
     var strVar = "";
     strVar += '  <div class="customTooltip">';
     strVar += "    <div>";
@@ -546,7 +540,6 @@ class TreeChart {
 
     if (!this.oldData)
       document.getElementById("tagclick").addEventListener("click", () => {
-        console.log(data);
         this.focusOnNode(data);
       });
 
@@ -645,7 +638,6 @@ class TreeChart {
     });
 
     var htmlString = htmlStringArray.join("");
-    console.log(_that, _that.clearResult);
     _that.clearResult();
 
     var parentElement = _that.get(".result-list");
@@ -874,13 +866,15 @@ class TreeChart {
       .enter()
       .append("g")
       .attr("class", "node")
-      .attr("transform", d => `translate(${x0},${y0})`)
+      .attr("transform", () => {
+        const a = `translate(${x0},${y0})`;
+        return a;
+      })
       .attr("cursor", "pointer")
       .on("click", ({ data }) => {
         if ([...d3.event.srcElement.classList].includes("node-button-circle")) {
           return;
         }
-        console.log(data, d3.event.pageY);
         this.plotToolTip(data);
         attrs.onNodeClick(data.nodeId);
       });
@@ -1027,7 +1021,10 @@ class TreeChart {
       .transition()
       .attr("opacity", 0)
       .duration(attrs.duration)
-      .attr("transform", ({ x, y }) => `translate(${x},${y})`)
+      .attr("transform", ({ x, y }) => {
+        const a = `translate(${x},${y})`;
+        return a;
+      })
       .attr("opacity", 1);
 
     // Move images to desired positions
@@ -1057,7 +1054,9 @@ class TreeChart {
       .select(".node-rect")
       .attr("width", ({ data }) => data.width)
       .attr("height", ({ data }) => data.height)
-      .attr("x", ({ data }) => -data.width / 2)
+      .attr("x", ({ data }) => {
+        return -data.width / 2;
+      })
       .attr("y", ({ data }) => -data.height / 2)
       .attr("rx", ({ data }) => data.borderRadius || 0)
       .attr("stroke-width", ({ data }) => data.borderWidth || attrs.strokeWidth)
@@ -1134,7 +1133,6 @@ class TreeChart {
       d.y0 = d.y;
     });
 
-    console.log(nodes);
     if (locate) {
       let xCord, yCord;
 
@@ -1258,8 +1256,8 @@ class TreeChart {
 
   // Toggle children on click.
   onButtonClick(d) {
-    console.log("here here", d);
-    console.log(this.data());
+    console.log(d);
+
     // If childrens are expanded
     if (d.children) {
       //Collapse them
@@ -1269,14 +1267,15 @@ class TreeChart {
       // Set descendants expanded property to false
       this.setExpansionFlagToChildren(d, false);
     } else {
-      if (d.id == "5") this.addNodeElement();
+      if (d.id == "5" && !d.childrenFecthed) this.addNodeElement(d);
+      else {
+        // expand
+        d.children = d._children;
+        d._children = null;
 
-      //expand
-      d.children = d._children;
-      d._children = null;
-
-      // Set each children as expanded
-      d.children && d.children.forEach(({ data }) => (data.expanded = true));
+        // Set each children as expanded
+        d.children && d.children.forEach(({ data }) => (data.expanded = true));
+      }
     }
     // Redraw Graph
     this.update(d);
@@ -1424,7 +1423,6 @@ class TreeChart {
       // Store it
       attrs.lastTransform = transform;
 
-      console.log("transform >", transform);
       // Reposition and rescale chart accordingly
       chart.attr("transform", transform);
     }
