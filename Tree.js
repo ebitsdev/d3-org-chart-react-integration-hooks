@@ -1250,7 +1250,11 @@ class TreeChart {
     margin-top: 20px;
 "> ${data.name}</div><div style="
     font-size: 20px;
-    margin-left: 20px;">1,20,000 USD</div>`;
+    margin-left: 20px;">1,20,000 USD</div><div style="
+    font-size: 30px;
+    margin-left: 20px;
+    margin-top: 20px;
+">${data.perc}%</div>`;
       });
   }
 
