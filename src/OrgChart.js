@@ -1,8 +1,10 @@
 import React, { useLayoutEffect, useRef, useEffect, useState } from "react";
 import TreeChart from "./Tree";
+import useResizeObserver from "./useResizeObserver";
 
 export const OrgChartComponent = (props, ref) => {
   const d3Container = useRef(null);
+  const dimensions = useResizeObserver(d3Container);
   const [chartObj, setChartObj] = useState({});
   let chart = null;
 
@@ -26,18 +28,19 @@ export const OrgChartComponent = (props, ref) => {
   };
 
   // We need to manipulate DOM
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (props.data && d3Container.current) {
       if (!chart) {
         chart = new TreeChart();
         setChartObj(chart);
       }
-
+console.log(dimensions);
+console.log(d3Container.current);
       chart
         .container(d3Container.current)
         .data(props.data)
-        .svgWidth(500)
-        .initialZoom(0.4)
+        .svgWidth(dimensions.width)
+        .initialZoom(0.6)
         .onNodeClick(d => {
           console.log(d + " node clicked");
           console.log("props", Object.keys(props), d);
@@ -45,7 +48,7 @@ export const OrgChartComponent = (props, ref) => {
         })
         .render();
     }
-  }, [props.data, d3Container.current]);
+  }, [props.data, d3Container.current, dimensions]);
 
   const addNodeEl = () => {
     chartObj.addNodeElement();
@@ -56,7 +59,7 @@ export const OrgChartComponent = (props, ref) => {
   };
 
   const zoomNode = () => {
-    chartObj.zoomNode();
+    // chartObj.zoomNode();
   };
 
   return (

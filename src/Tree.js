@@ -1,12 +1,12 @@
 import * as d3 from "d3";
-
+import useResizeObserver from './useResizeObserver';
 class TreeChart {
   constructor() {
     // Exposed variables
     const attrs = {
       id: `ID${Math.floor(Math.random() * 1000000)}`, // Id for event handlings
-      svgWidth: 800,
-      svgHeight: 600,
+      svgWidth: "100%",
+      svgHeight: "100%",
       marginTop: 0,
       marginBottom: 0,
       marginRight: 0,
